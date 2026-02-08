@@ -29,8 +29,9 @@ export default function App() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${API_URL}/predict?city=${encodeURIComponent(city.trim())}`,
+        `${API_URL}/predict?city=${encodeURIComponent(city.trim())}&live=true`,
       );
+
       if (!res.ok) {
         const msg = await res.json().catch(() => ({}));
         throw new Error(msg.detail || "Failed to fetch prediction");
@@ -60,18 +61,14 @@ export default function App() {
         <form className="search" onSubmit={handleSubmit}>
           <label htmlFor="city">City name</label>
           <div className="search-row">
-            <input
-              id="city"
-              list="cities"
-              placeholder="e.g., Delhi"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            />
-            <datalist id="cities">
+            <select value={city} onChange={(e) => setCity(e.target.value)}>
+              <option value="">Select a city</option>
               {cities.map((c) => (
-                <option key={c} value={c} />
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
-            </datalist>
+            </select>
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Get Air Quality"}
             </button>
@@ -94,39 +91,26 @@ export default function App() {
 
             <div className="grid">
               <div className="card">
-                <h3>NO2 Avg</h3>
-                <p>{result.no2_avg.toFixed(6)}</p>
-              </div>
-              <div className="card">
-                <h3>NO2 Predicted</h3>
-                <p>{result.no2_predicted.toFixed(6)}</p>
-              </div>
-              <div className="card">
-                <h3>PM2.5</h3>
-                <p>{result.pm25.toFixed(2)}</p>
-              </div>
-              <div className="card">
-                <h3>PM10</h3>
-                <p>{result.pm10.toFixed(2)}</p>
-              </div>
-              <div className="card">
-                <h3>SO2</h3>
-                <p>{result.so2.toFixed(2)}</p>
-              </div>
-              <div className="card">
-                <h3>CO</h3>
-                <p>{result.co.toFixed(2)}</p>
-              </div>
-              <div className="card">
-                <h3>O3</h3>
-                <p>{result.o3.toFixed(2)}</p>
-              </div>
-              <div className="card">
-                <h3>Weather</h3>
+                <h3>MODIS AOD</h3>
                 <p>
-                  {result.temperature}C, {result.humidity}%
+                  {Number.isFinite(result.modis_aod)
+                    ? result.modis_aod.toFixed(3)
+                    : "Unavailable"}
                 </p>
-                <p>Wind {result.wind_speed} m/s</p>
+                {result.modis_granule_id && (
+                  <p className="muted">Granule {result.modis_granule_id}</p>
+                )}
+                {result.modis_error && (
+                  <p className="muted">{result.modis_error}</p>
+                )}
+              </div>
+              <div className="card">
+                <h3>NO2 Average</h3>
+                <p>
+                  {Number.isFinite(result.no2_avg)
+                    ? result.no2_avg.toFixed(3)
+                    : "Unavailable"}
+                </p>
               </div>
             </div>
           </section>
